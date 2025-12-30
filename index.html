@@ -457,7 +457,7 @@ create policy "Allow all" on progress for all using (true);
                     </pre>
                     <ol start="3" style="line-height: 2;">
                         <li>Get your Project URL and anon key from Settings → API</li>
-                        <li>Edit this HTML file and paste them at line 850-851</li>
+                        <li>Edit <code>index.html</code> and paste them into the <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> values in the “CONFIGURATION” section</li>
                         <li>Refresh this page</li>
                     </ol>
                 </div>
@@ -524,16 +524,17 @@ create policy "Allow all" on progress for all using (true);
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2a3J2aWRjZWFibG1oYmxjYXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjQ5NzIsImV4cCI6MjA4MjcwMDk3Mn0.V9n0UJVgr3Ee3RJpLrQibolA_GgEdp3V0iIcr1a9sII';
         // ============================================
 
+        // Initialize Supabase only when configured (avoids "Invalid URL" errors in setup mode)
+        let supabase = null;
+
         // Check if configured
         if (SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_HERE') {
             document.getElementById('setupScreen').classList.remove('hidden');
         } else {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             document.getElementById('mainApp').classList.remove('hidden');
             initializeApp();
         }
-
-        // Initialize Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Course Data
         const lessons = [
@@ -711,15 +712,19 @@ create policy "Allow all" on progress for all using (true);
         // Initialize
         async function initializeApp() {
             await loadUsers();
-            await loadProgress();
-            renderLessonsList();
             
             // Load saved user
             const savedUserId = localStorage.getItem('currentUserId');
             if (savedUserId) {
                 document.getElementById('userSelect').value = savedUserId;
                 currentUser = savedUserId;
+                await loadProgress();
+            } else {
+                completedLessons = new Set();
+                updateProgress();
             }
+
+            renderLessonsList();
         }
 
         // Load users from Supabase
@@ -971,6 +976,11 @@ create policy "Allow all" on progress for all using (true);
             if (currentUser) {
                 localStorage.setItem('currentUserId', currentUser);
                 await loadProgress();
+                renderLessonsList();
+            } else {
+                localStorage.removeItem('currentUserId');
+                completedLessons = new Set();
+                updateProgress();
                 renderLessonsList();
             }
         });
