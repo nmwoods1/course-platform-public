@@ -524,16 +524,48 @@ create policy "Allow all" on progress for all using (true);
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2a3J2aWRjZWFibG1oYmxjYXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjQ5NzIsImV4cCI6MjA4MjcwMDk3Mn0.V9n0UJVgr3Ee3RJpLrQibolA_GgEdp3V0iIcr1a9sII';
         // ============================================
 
+        function showSetupScreen(message) {
+            const setup = document.getElementById('setupScreen');
+            setup.classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+
+            if (message) {
+                const card = setup.querySelector('.card');
+                const existing = setup.querySelector('#setupError');
+                if (existing) existing.remove();
+
+                const warning = document.createElement('div');
+                warning.id = 'setupError';
+                warning.style.marginBottom = '16px';
+                warning.style.padding = '12px';
+                warning.style.borderRadius = '8px';
+                warning.style.background = 'rgba(245, 101, 101, 0.2)';
+                warning.style.border = '1px solid rgba(245, 101, 101, 0.5)';
+                warning.innerHTML = `<strong>Unable to start the app:</strong><br>${message}`;
+                card.insertBefore(warning, card.children[1]);
+            }
+        }
+
         // Initialize Supabase only when configured (avoids "Invalid URL" errors in setup mode)
         let supabase = null;
 
         // Check if configured
         if (SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_HERE') {
-            document.getElementById('setupScreen').classList.remove('hidden');
+            showSetupScreen(null);
         } else {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            document.getElementById('mainApp').classList.remove('hidden');
-            initializeApp();
+            // If the Supabase CDN script didn't load (offline / blocked), don't fail blank.
+            if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+                showSetupScreen('The Supabase library failed to load. If you are opening this file locally, try again with an internet connection (or host it and allow loading from jsdelivr).');
+            } else {
+                try {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    initializeApp();
+                } catch (e) {
+                    console.error('Supabase initialization failed:', e);
+                    showSetupScreen(`Supabase initialization failed: ${String(e && e.message ? e.message : e)}`);
+                }
+            }
         }
 
         // Course Data
