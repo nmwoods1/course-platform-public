@@ -413,6 +413,85 @@
         .hidden {
             display: none !important;
         }
+
+        /* Debug Drawer (mobile-friendly in-page logger) */
+        body {
+            padding-bottom: calc(20px + 48px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .debug-drawer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .debug-drawer__bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: rgba(17, 24, 39, 0.92);
+            color: #e5e7eb;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .debug-drawer__bar button {
+            appearance: none;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.08);
+            color: #e5e7eb;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .debug-drawer__bar button:active {
+            transform: translateY(1px);
+        }
+
+        .debug-drawer__title {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .debug-drawer__summary {
+            font-size: 12px;
+            opacity: 0.85;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .debug-drawer__spacer {
+            flex: 1;
+        }
+
+        .debug-drawer__panel {
+            background: rgba(3, 7, 18, 0.96);
+            color: #e5e7eb;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            max-height: 45vh;
+            overflow: auto;
+            padding: 10px;
+        }
+
+        .debug-drawer__panel pre {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .debug-line--log { color: #e5e7eb; }
+        .debug-line--warn { color: #fbbf24; }
+        .debug-line--error { color: #fca5a5; }
     </style>
 </head>
 <body>
@@ -516,7 +595,119 @@ create policy "Allow all" on progress for all using (true);
         </div>
     </div>
 
+    <!-- Debug Drawer (for mobile-only debugging without DevTools) -->
+    <div id="debugDrawer" class="debug-drawer">
+        <div class="debug-drawer__bar">
+            <button id="debugToggle" type="button">Show debug</button>
+            <span class="debug-drawer__title">Debug</span>
+            <span id="debugSummary" class="debug-drawer__summary">Ready</span>
+            <span class="debug-drawer__spacer"></span>
+            <button id="debugCopy" type="button">Copy</button>
+            <button id="debugClear" type="button">Clear</button>
+        </div>
+        <div id="debugPanel" class="debug-drawer__panel hidden">
+            <pre id="debugLog"></pre>
+        </div>
+    </div>
+
     <script>
+        (function initDebugDrawer() {
+            const toggleBtn = document.getElementById('debugToggle');
+            const clearBtn = document.getElementById('debugClear');
+            const copyBtn = document.getElementById('debugCopy');
+            const panel = document.getElementById('debugPanel');
+            const logEl = document.getElementById('debugLog');
+            const summaryEl = document.getElementById('debugSummary');
+
+            if (!toggleBtn || !panel || !logEl || !summaryEl) return;
+
+            const MAX_LINES = 500;
+            const lines = [];
+
+            function formatArg(arg) {
+                if (arg instanceof Error) return arg.stack || `${arg.name}: ${arg.message}`;
+                if (typeof arg === 'string') return arg;
+                try {
+                    return JSON.stringify(arg, null, 2);
+                } catch {
+                    return String(arg);
+                }
+            }
+
+            function addLine(level, args) {
+                const ts = new Date().toISOString().split('T')[1].replace('Z', '');
+                const msg = args.map(formatArg).join(' ');
+                const line = `[${ts}] ${level.toUpperCase()}: ${msg}`;
+                lines.push({ level, line });
+                if (lines.length > MAX_LINES) lines.splice(0, lines.length - MAX_LINES);
+
+                // Render (simple + fast enough for small MAX_LINES)
+                logEl.innerHTML = lines
+                    .map(({ level: lvl, line: ln }) => {
+                        const cls = lvl === 'error' ? 'debug-line--error' : (lvl === 'warn' ? 'debug-line--warn' : 'debug-line--log');
+                        const escaped = ln
+                            .replaceAll('&', '&amp;')
+                            .replaceAll('<', '&lt;')
+                            .replaceAll('>', '&gt;');
+                        return `<span class="${cls}">${escaped}</span>`;
+                    })
+                    .join('\n');
+
+                summaryEl.textContent = msg || summaryEl.textContent;
+                panel.scrollTop = panel.scrollHeight;
+            }
+
+            function setOpen(open) {
+                panel.classList.toggle('hidden', !open);
+                toggleBtn.textContent = open ? 'Hide debug' : 'Show debug';
+                localStorage.setItem('debugDrawerOpen', open ? '1' : '0');
+            }
+
+            toggleBtn.addEventListener('click', () => setOpen(panel.classList.contains('hidden')));
+            clearBtn.addEventListener('click', () => {
+                lines.splice(0, lines.length);
+                logEl.textContent = '';
+                summaryEl.textContent = 'Cleared';
+            });
+            copyBtn.addEventListener('click', async () => {
+                const text = lines.map(l => l.line).join('\n');
+                try {
+                    await navigator.clipboard.writeText(text);
+                    summaryEl.textContent = 'Copied to clipboard';
+                } catch (e) {
+                    // Fallback: show text length; user can long-press to select/copy from the panel
+                    summaryEl.textContent = `Copy failed (${String(e && e.message ? e.message : e)}). Open the panel and long-press to copy.`;
+                    setOpen(true);
+                }
+            });
+
+            // Patch console to mirror to drawer
+            const original = {
+                log: console.log.bind(console),
+                warn: console.warn.bind(console),
+                error: console.error.bind(console)
+            };
+
+            console.log = (...args) => { original.log(...args); addLine('log', args); };
+            console.warn = (...args) => { original.warn(...args); addLine('warn', args); };
+            console.error = (...args) => { original.error(...args); addLine('error', args); };
+
+            window.addEventListener('error', (e) => {
+                addLine('error', [
+                    `Uncaught error: ${e.message}`,
+                    e.filename ? `(${e.filename}:${e.lineno}:${e.colno})` : ''
+                ]);
+            });
+            window.addEventListener('unhandledrejection', (e) => {
+                addLine('error', ['Unhandled promise rejection:', e.reason]);
+            });
+
+            // Initial state
+            const open = localStorage.getItem('debugDrawerOpen') === '1';
+            setOpen(open);
+            addLine('log', ['Debug drawer initialized']);
+        })();
+
         // ============================================
         // CONFIGURATION - EDIT THESE TWO LINES
         // ============================================
