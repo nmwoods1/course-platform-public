@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personal Learning Companion</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand__title">Personal Learning Companion</div>
+          <div class="brand__subtitle">Local-first courses + habits + reflection</div>
+        </div>
+        <div class="topbar__right">
+          <button id="btnJournal" class="btn btn--ghost" type="button">Journal</button>
+          <button id="btnSwitchUser" class="btn btn--ghost" type="button">Switch user</button>
+        </div>
+      </header>
+
+      <main id="root" class="main">
+        <div class="card">
+          <div class="loading">Loading…</div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span id="statusText" class="muted">Ready</span>
+      </footer>
+    </div>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
