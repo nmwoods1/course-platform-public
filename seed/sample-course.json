@@ -1,0 +1,88 @@
+{
+  "id": "guitar-fundamentals",
+  "title": "Guitar Fundamentals",
+  "description": "A gentle, self-paced 7-day foundation: posture, fretting, rhythm, and consistency.",
+  "estimatedMinutesPerModule": 15,
+  "modules": [
+    {
+      "title": "Day 1: Holding the Guitar",
+      "pages": [
+        {
+          "type": "info",
+          "title": "Proper Posture (2 minutes)",
+          "content": "<p>Sit tall, relax your shoulders, and keep your wrists neutral. The goal is comfort and repeatability, not “perfect form.”</p><p>Keep the neck angled slightly upward. If you feel pain, adjust immediately.</p>"
+        },
+        {
+          "type": "video",
+          "title": "Watch: Posture + Hand Position (3 minutes)",
+          "url": "https://www.youtube.com/embed/2WUi7w4oK08"
+        },
+        {
+          "type": "quiz",
+          "question": "Which is the best posture cue?",
+          "options": [
+            "Shoulders relaxed, wrists neutral",
+            "Grip the neck tightly for control",
+            "Hunch forward so you can see the strings"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "type": "checkbox",
+          "prompt": "I practiced holding the guitar for 5 minutes"
+        }
+      ]
+    },
+    {
+      "title": "Day 2: Fretting Clean Notes",
+      "pages": [
+        {
+          "type": "info",
+          "title": "Clean sound checklist (3 minutes)",
+          "content": "<p>Fret just behind the fret wire (not on top of it). Press with the fingertip, keep the thumb relaxed behind the neck, and use only as much pressure as needed.</p><p>Work slowly—clean notes come from precision, not force.</p>"
+        },
+        {
+          "type": "quiz",
+          "question": "Where should your finger land for the cleanest note?",
+          "options": ["In the middle of the fret space", "Just behind the fret wire", "Directly on the fret wire"],
+          "correctIndex": 1
+        },
+        {
+          "type": "journal",
+          "prompt": "What string/fret buzzed the most today, and what did you change to fix it?",
+          "placeholder": "Example: 2nd string at 3rd fret buzzed until I moved closer to the fret and curved my finger."
+        },
+        {
+          "type": "checkbox",
+          "prompt": "I played each string slowly and adjusted until it rang clearly"
+        }
+      ]
+    },
+    {
+      "title": "Day 3: Rhythm & Strumming",
+      "pages": [
+        {
+          "type": "info",
+          "title": "Rhythm first (3 minutes)",
+          "content": "<p>Great guitar playing is mostly rhythm. Start by counting steady: 1 &amp; 2 &amp; 3 &amp; 4 &amp;.</p><p>Strum lightly and consistently. If timing is solid, everything else improves faster.</p>"
+        },
+        {
+          "type": "video",
+          "title": "Watch: Basic downstrokes (3 minutes)",
+          "url": "https://www.youtube.com/embed/2Zr1a7pGxJw"
+        },
+        {
+          "type": "quiz",
+          "question": "What should you prioritize first when learning a new strumming pattern?",
+          "options": ["Speed", "Perfect tone", "Consistent timing"],
+          "correctIndex": 2
+        },
+        {
+          "type": "checkbox",
+          "prompt": "I counted 1 & 2 & 3 & 4 & while strumming for 2 minutes"
+        }
+      ]
+    }
+  ]
+}
+

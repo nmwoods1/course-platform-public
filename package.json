@@ -1,0 +1,24 @@
+{
+  "name": "personal-learning-companion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first personal learning companion (Express + SQLite) with offline-friendly web UI.",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node scripts/seed.js",
+    "install-service": "node service/install-service.js",
+    "uninstall-service": "node service/uninstall-service.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "node-windows": "^1.0.0-beta.8"
+  }
+}
